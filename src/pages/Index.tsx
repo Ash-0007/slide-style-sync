@@ -8,7 +8,7 @@ import StatusOutput from '@/components/StatusOutput';
 import ActionButtons from '@/components/ActionButtons';
 import MeetingDetails from '@/components/MeetingDetails';
 import RolesImageUpload from '@/components/RolesImageUpload';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Sidebar from '@/components/Sidebar';
 import { formatDateInfo } from '@/utils/dateUtils';
 import PresentationService from '@/services/PresentationService';
 import { toast } from 'sonner';
@@ -17,6 +17,9 @@ const Index = () => {
   // File state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isAnalyzed, setIsAnalyzed] = useState(false);
+  
+  // Navigation state
+  const [activeTab, setActiveTab] = useState('upload');
   
   // Date state
   const [dateInfo, setDateInfo] = useState(formatDateInfo(new Date()));
@@ -138,6 +141,9 @@ const Index = () => {
         if (result.textDetails.venue) setVenue(result.textDetails.venue);
       }
       
+      // Switch to content tab after successful analysis
+      setActiveTab('content');
+      
       toast.success('Presentation analyzed successfully');
     } catch (error) {
       console.error('Error analyzing presentation:', error);
@@ -199,108 +205,140 @@ const Index = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-lavender">
-      <div className="purple-gradient py-12">
-        <div className="container">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white text-center mb-2">
-            Slide Style Sync
-          </h1>
-          <p className="text-center text-white/90 text-lg">
-            PowerPoint Presentation Editor
-          </p>
-        </div>
-      </div>
-      
-      <div className="container py-8 px-4 sm:px-6">
+  const renderContent = () => {
+    if (activeTab === 'upload' || !isAnalyzed) {
+      return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <FileUpload 
-              onFileSelected={handleFileSelected}
-              onAnalyzeClick={handleAnalyzeClick}
-              fileName={selectedFile?.name || null}
-            />
-          </div>
-
+          <FileUpload 
+            onFileSelected={handleFileSelected}
+            onAnalyzeClick={handleAnalyzeClick}
+            fileName={selectedFile?.name || null}
+          />
           <StatusOutput 
             status={status}
             logs={logs}
           />
         </div>
-        
-        {isAnalyzed && (
-          <Tabs defaultValue="content" className="mt-6">
-            <TabsList className="grid grid-cols-3 max-w-md mx-auto mb-6 bg-thistle">
-              <TabsTrigger value="content" className="data-[state=active]:bg-mountbatten data-[state=active]:text-white">Content</TabsTrigger>
-              <TabsTrigger value="details" className="data-[state=active]:bg-mountbatten data-[state=active]:text-white">Details</TabsTrigger>
-              <TabsTrigger value="images" className="data-[state=active]:bg-mountbatten data-[state=active]:text-white">Images</TabsTrigger>
-            </TabsList>
+      );
+    } else if (activeTab === 'content') {
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <DateSelection 
+              dateInfo={dateInfo}
+              onDateChange={handleDateChange}
+            />
             
-            <TabsContent value="content" className="mt-0">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-6">
-                  <DateSelection 
-                    dateInfo={dateInfo}
-                    onDateChange={handleDateChange}
-                  />
-                  
-                  <ThemeInput 
-                    theme={theme}
-                    onThemeChange={setTheme}
-                  />
-                </div>
-                
-                <div className="space-y-6">
-                  <RolesInput 
-                    tmod={tmod}
-                    ge={ge}
-                    speaker1={speaker1}
-                    speaker2={speaker2}
-                    onRoleChange={handleRoleChange}
-                  />
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="details" className="mt-0">
-              <MeetingDetails 
-                meetingMode={meetingMode}
-                meetingTime={meetingTime}
-                venue={venue}
-                onDetailChange={handleDetailChange}
-              />
-            </TabsContent>
-            
-            <TabsContent value="images" className="mt-0">
-              <RolesImageUpload 
-                onImageSelected={handleImageSelected}
-                tmod={tmod}
-                ge={ge}
-                speaker1={speaker1}
-                speaker2={speaker2}
-              />
-            </TabsContent>
-          </Tabs>
-        )}
-        
-        {isAnalyzed && (
-          <div className="mt-8">
-            <ActionButtons 
-              onUpdate={handleUpdatePresentation}
-              onSave={handleSavePresentation}
-              isDisabled={false}
+            <ThemeInput 
+              theme={theme}
+              onThemeChange={setTheme}
             />
           </div>
-        )}
-      </div>
-      
-      <footer className="bg-white border-t border-thistle py-6 mt-8">
-        <div className="container">
-          <p className="text-center text-sm text-spacecadet/60">
-            Slide Style Sync © {new Date().getFullYear()} - PowerPoint presentation editor
-          </p>
+          
+          <div className="space-y-6">
+            <RolesInput 
+              tmod={tmod}
+              ge={ge}
+              speaker1={speaker1}
+              speaker2={speaker2}
+              onRoleChange={handleRoleChange}
+            />
+            <StatusOutput 
+              status={status}
+              logs={logs}
+            />
+          </div>
         </div>
-      </footer>
+      );
+    } else if (activeTab === 'details') {
+      return (
+        <div className="space-y-6">
+          <MeetingDetails 
+            meetingMode={meetingMode}
+            meetingTime={meetingTime}
+            venue={venue}
+            onDetailChange={handleDetailChange}
+          />
+          <StatusOutput 
+            status={status}
+            logs={logs}
+          />
+        </div>
+      );
+    } else if (activeTab === 'images') {
+      return (
+        <div className="space-y-6">
+          <RolesImageUpload 
+            onImageSelected={handleImageSelected}
+            tmod={tmod}
+            ge={ge}
+            speaker1={speaker1}
+            speaker2={speaker2}
+          />
+          <StatusOutput 
+            status={status}
+            logs={logs}
+          />
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-neutral-50 flex">
+      <Sidebar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        isAnalyzed={isAnalyzed} 
+      />
+      
+      <div className="flex-1 flex flex-col">
+        <div className="bg-gradient-primary py-6">
+          <div className="container px-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white text-center mb-1 font-heading">
+              Slide Style Sync
+            </h1>
+            <p className="text-center text-white/80 text-base">
+              PowerPoint Presentation Editor
+            </p>
+          </div>
+        </div>
+        
+        <div className="container py-8 px-6 flex-1">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-neutral-800 font-heading mb-2">
+              {activeTab === 'upload' ? 'File Upload' : 
+               activeTab === 'content' ? 'Content Editor' : 
+               activeTab === 'details' ? 'Meeting Details' : 'Profile Images'}
+            </h2>
+            <p className="text-neutral-500">
+              {activeTab === 'upload' ? 'Upload your PowerPoint file to get started' : 
+               activeTab === 'content' ? 'Edit the date, theme, and roles in your presentation' : 
+               activeTab === 'details' ? 'Update meeting mode, time, and venue information' : 'Add profile pictures for each role'}
+            </p>
+          </div>
+          
+          {renderContent()}
+          
+          {isAnalyzed && (
+            <div className="mt-8">
+              <ActionButtons 
+                onUpdate={handleUpdatePresentation}
+                onSave={handleSavePresentation}
+                isDisabled={false}
+              />
+            </div>
+          )}
+        </div>
+        
+        <footer className="bg-white border-t border-neutral-200 py-4">
+          <div className="container px-6">
+            <p className="text-center text-sm text-neutral-500">
+              Slide Style Sync © {new Date().getFullYear()} - PowerPoint presentation editor
+            </p>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };

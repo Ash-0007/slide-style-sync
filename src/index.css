@@ -1,87 +1,89 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 352 43% 93%;
-    --foreground: 222 53% 21%;
+    --background: 0 0% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 53% 21%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 53% 21%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 283 17% 55%;
+    --primary: 264 31% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 275 30% 83%;
-    --secondary-foreground: 222 53% 21%;
+    --secondary: 173 69% 42%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 275 30% 93%;
-    --muted-foreground: 222 53% 21%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 225 5% 45%;
 
-    --accent: 254 26% 71%;
-    --accent-foreground: 222 53% 21%;
+    --accent: 38 76% 60%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 275 30% 83%;
-    --input: 275 30% 83%;
-    --ring: 283 17% 55%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 264 31% 42%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 352 43% 93%;
-    --sidebar-foreground: 222 53% 21%;
-    --sidebar-primary: 283 17% 55%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 264 31% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 275 30% 93%;
-    --sidebar-accent-foreground: 222 53% 21%;
-    --sidebar-border: 275 30% 83%;
-    --sidebar-ring: 283 17% 55%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 264 31% 42%;
   }
 
   .dark {
-    --background: 222 53% 21%;
-    --foreground: 275 30% 93%;
+    --background: 222 47% 11%;
+    --foreground: 0 0% 98%;
 
-    --card: 222 53% 15%;
-    --card-foreground: 275 30% 93%;
+    --card: 222 47% 11%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222 53% 15%;
-    --popover-foreground: 275 30% 93%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 283 17% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 264 31% 42%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 222 53% 30%;
-    --secondary-foreground: 275 30% 93%;
+    --secondary: 173 69% 42%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 222 53% 30%;
-    --muted-foreground: 275 30% 83%;
+    --muted: 223 47% 20%;
+    --muted-foreground: 215 16% 75%;
 
-    --accent: 254 26% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 38 76% 60%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 222 53% 30%;
-    --input: 222 53% 30%;
-    --ring: 283 17% 55%;
+    --border: 223 47% 20%;
+    --input: 223 47% 20%;
+    --ring: 264 31% 42%;
     
-    --sidebar-background: 222 53% 15%;
-    --sidebar-foreground: 275 30% 93%;
-    --sidebar-primary: 283 17% 55%;
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 264 31% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 53% 30%;
-    --sidebar-accent-foreground: 275 30% 93%;
-    --sidebar-border: 222 53% 30%;
-    --sidebar-ring: 283 17% 55%;
+    --sidebar-accent: 223 47% 20%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 223 47% 20%;
+    --sidebar-ring: 264 31% 42%;
   }
 }
 
@@ -91,21 +93,93 @@
   }
 
   body {
-    @apply bg-lavender text-spacecadet;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+
+  h1 {
+    @apply text-3xl leading-tight sm:text-4xl font-bold;
+  }
+
+  h2 {
+    @apply text-2xl leading-tight font-semibold;
+  }
+
+  h3 {
+    @apply text-xl leading-snug font-semibold;
+  }
+
+  p {
+    @apply leading-relaxed;
   }
 }
 
+/* Modern Card Styles */
 .card-gradient {
-  background: linear-gradient(109.6deg, rgba(213,198,224,0.8) 11.2%, rgba(245,230,232,0.8) 91.1%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(245,245,245,0.8) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
 }
 
 .purple-gradient {
-  background: linear-gradient(102.3deg, rgba(150,122,161,0.9) 5.9%, rgba(170,161,200,0.9) 64%, rgba(213,198,224,0.9) 89%);
+  background: linear-gradient(135deg, #5D4A8C 0%, #7A5EB2 100%);
 }
 
 .glass-card {
   backdrop-filter: blur(10px);
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+  box-shadow: 0 8px 20px rgba(31, 38, 135, 0.05);
+}
+
+/* Form element styles */
+.floating-label {
+  @apply relative;
+}
+
+.floating-label input:focus ~ label,
+.floating-label input:not(:placeholder-shown) ~ label,
+.floating-label textarea:focus ~ label,
+.floating-label textarea:not(:placeholder-shown) ~ label {
+  @apply -translate-y-5 scale-85 text-primary;
+}
+
+.floating-label label {
+  @apply absolute left-3 top-3 origin-[0] transform text-neutral-500 transition-all duration-200;
+}
+
+/* Custom file upload styles */
+.file-upload-zone {
+  @apply border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer;
+}
+
+.file-upload-zone:hover {
+  @apply border-primary bg-primary/5;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-gradient-primary text-white px-4 py-2 rounded-md shadow-button transition-all hover:shadow-button-hover;
+}
+
+.btn-secondary {
+  @apply border border-primary text-primary bg-white px-4 py-2 rounded-md shadow-sm transition-all hover:bg-primary/5;
+}
+
+.btn-tertiary {
+  @apply text-primary underline-offset-2 hover:underline;
+}
+
+/* Animation classes */
+.hover-lift {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover;
+}
+
+/* Focus styles for accessibility */
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-50;
 }

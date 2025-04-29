@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -19,6 +18,11 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+				heading: ['Poppins', 'sans-serif'],
+				display: ['"SF Pro Display"', 'sans-serif']
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -63,7 +67,28 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom theme colors
+				// New color system based on the proposal
+				deep: {
+					purple: '#5D4A8C',
+					teal: '#21B6A8'
+				},
+				accent: {
+					gold: '#E6B54A',
+					coral: '#FF7F6B'
+				},
+				neutral: {
+					50: '#F8F8F8',
+					100: '#F0F0F0',
+					200: '#E4E4E4',
+					300: '#D1D1D1',
+					400: '#B4B4B4',
+					500: '#919191',
+					600: '#6D6D6D',
+					700: '#5C5C5C',
+					800: '#474747',
+					900: '#333333',
+				},
+				// Custom theme colors - existing
 				lavender: {
 					DEFAULT: '#f5e6e8',
 					100: '#441b20',
@@ -164,19 +189,40 @@ export default {
 					'100%': { 
 						transform: 'translateX(0)' 
 					}
+				},
+				'float': {
+					'0%, 100%': { 
+						transform: 'translateY(0)' 
+					},
+					'50%': { 
+						transform: 'translateY(-5px)' 
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
-				'slide-in-right': 'slide-in-right 0.3s ease-out'
+				'slide-in-right': 'slide-in-right 0.3s ease-out',
+				'float': 'float 5s ease-in-out infinite'
 			},
 			backgroundImage: {
+				// Updated gradients based on the new color system
+				'gradient-primary': 'linear-gradient(135deg, #5D4A8C 0%, #7A5EB2 100%)',
+				'gradient-secondary': 'linear-gradient(135deg, #21B6A8 0%, #4FD1C5 100%)',
+				'gradient-accent': 'linear-gradient(135deg, #E6B54A 0%, #F6D06C 100%)',
+				'gradient-coral': 'linear-gradient(135deg, #FF7F6B 0%, #FFA28F 100%)',
+				// Keep existing gradients
 				'gradient-purple': 'linear-gradient(102.3deg, rgba(150,122,161,0.9) 5.9%, rgba(170,161,200,0.9) 64%, rgba(213,198,224,0.9) 89%)',
 				'gradient-soft': 'linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%)',
 				'gradient-lavender': 'linear-gradient(to right, #f5e6e8, #d5c6e0)'
-			}
+			},
+			boxShadow: {
+				'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+				'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
+				'button': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+				'button-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

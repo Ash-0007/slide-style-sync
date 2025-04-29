@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, FileText } from "lucide-react";
+import { Upload, FileText, BarChart } from "lucide-react";
 import { toast } from "sonner";
 
 interface FileUploadProps {
@@ -53,23 +53,29 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelected, onAnalyzeClick,
   };
 
   return (
-    <Card className="w-full animate-fade-in glass-card">
+    <Card className="w-full animate-fade-in bg-white shadow-card hover:shadow-card-hover transition-all">
       <CardContent className="p-6">
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div 
-            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer
-              ${dragging ? 'border-mountbatten bg-thistle/20' : 'border-thistle hover:border-mountbatten/50'}`}
+            className={`file-upload-zone ${dragging ? 'border-deep-purple bg-primary/10' : 'border-neutral-300 hover:border-deep-purple/80'}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => document.getElementById('file-input')?.click()}
           >
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <Upload className="h-10 w-10 text-mountbatten" />
-              <p className="text-sm text-spacecadet/70">
-                Drag and drop your PowerPoint file here, or <span className="text-mountbatten font-medium">browse</span>
-              </p>
-              <p className="text-xs text-spacecadet/50">Only .pptx files are supported</p>
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center animate-float">
+                <Upload className="h-8 w-8 text-deep-purple" />
+              </div>
+              <div>
+                <p className="text-base font-medium text-neutral-800 mb-1">
+                  Drag and drop your PowerPoint file here
+                </p>
+                <p className="text-sm text-neutral-500">
+                  or <span className="text-deep-purple font-medium">browse files</span>
+                </p>
+              </div>
+              <p className="text-xs text-neutral-400">Only .pptx files are supported</p>
             </div>
             <Input 
               id="file-input"
@@ -81,17 +87,25 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelected, onAnalyzeClick,
           </div>
 
           {fileName && (
-            <div className="flex items-center justify-between bg-thistle/30 p-3 rounded-lg animate-fade-in">
-              <div className="flex items-center space-x-3">
-                <FileText className="h-5 w-5 text-mountbatten" />
-                <span className="text-sm font-medium truncate max-w-[200px]">{fileName}</span>
+            <div className="bg-neutral-50 p-4 rounded-lg border border-neutral-200 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-lg bg-deep-purple/10 flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-deep-purple" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium truncate max-w-[200px]">{fileName}</p>
+                    <p className="text-xs text-neutral-500">PowerPoint Presentation</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={onAnalyzeClick} 
+                  className="bg-deep-purple hover:bg-deep-purple/90 text-white shadow-button hover:shadow-button-hover transition-all"
+                >
+                  <BarChart className="h-4 w-4 mr-2" />
+                  Analyze
+                </Button>
               </div>
-              <Button 
-                onClick={onAnalyzeClick} 
-                className="bg-mountbatten hover:bg-mountbatten/80 text-white"
-              >
-                Analyze
-              </Button>
             </div>
           )}
         </div>

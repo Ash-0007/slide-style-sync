@@ -11,6 +11,17 @@ interface ShapeObjects {
   [key: string]: ShapeInfo[];
 }
 
+interface ImagePlaceholder {
+  slideIdx: number;
+  shapeIdx: number;
+}
+
+interface TextPlaceholder {
+  slideIdx: number;
+  shapeIdx: number;
+  currentText: string;
+}
+
 interface Replacements {
   theme: string;
   day: string;
@@ -21,6 +32,9 @@ interface Replacements {
   ge: string;
   speaker1: string;
   speaker2: string;
+  meeting_mode: string;
+  meeting_time: string;
+  venue: string;
 }
 
 class PresentationService {
@@ -41,7 +55,32 @@ class PresentationService {
   private presentationBlob: Blob | null = null;
   private tempPresentationBlob: Blob | null = null;
   
-  async analyzePPT(file: File): Promise<{ logs: string[], searchTexts: { [key: string]: string } }> {
+  // Image and text placeholder info
+  private imageShapeNames: { [key: string]: string } = {
+    'tmod_image': 'TMOD_Image_Shape',
+    'speaker1_image': 'Speaker1_Image_Shape',
+    'speaker2_image': 'Speaker2_Image_Shape',
+    'ge_image': 'GE_Image_Shape'
+  };
+
+  private textShapeNames: { [key: string]: string } = {
+    'meeting_mode': 'Meeting Mode',
+    'meeting_time': 'Meeting Time',
+    'venue': 'Venue'
+  };
+  
+  private imagePlaceholders: { [key: string]: ImagePlaceholder | null } = {};
+  private textPlaceholders: { [key: string]: TextPlaceholder | null } = {};
+  
+  async analyzePPT(file: File): Promise<{ 
+    logs: string[], 
+    searchTexts: { [key: string]: string },
+    textDetails: { 
+      meeting_mode?: string,
+      meeting_time?: string,
+      venue?: string
+    }
+  }> {
     return new Promise((resolve) => {
       // In a real implementation, we would analyze the PPT file here
       // For demo purposes, we're simulating the analysis
@@ -61,7 +100,26 @@ class PresentationService {
         'speaker2': []
       };
       
+      // Reset placeholder objects
+      this.imagePlaceholders = {
+        'tmod_image': null,
+        'speaker1_image': null,
+        'speaker2_image': null,
+        'ge_image': null
+      };
+      
+      this.textPlaceholders = {
+        'meeting_mode': null,
+        'meeting_time': null,
+        'venue': null
+      };
+      
       const logs: string[] = [];
+      const textDetails: { meeting_mode?: string, meeting_time?: string, venue?: string } = {
+        meeting_mode: 'Online Meeting',
+        meeting_time: '7:00 PM - 9:00 PM',
+        venue: 'Zoom Video Conference'
+      };
       
       // Simulate finding text in slides
       Object.keys(this.searchTexts).forEach(key => {
@@ -77,17 +135,46 @@ class PresentationService {
         logs.push(`Found potential match for '${key}': '${this.searchTexts[key]}' on slide ${slideIdx+1}`);
       });
       
+      // Simulate finding image placeholders
+      Object.keys(this.imageShapeNames).forEach(key => {
+        const slideIdx = Math.floor(Math.random() * 5); // Random slide index
+        const shapeIdx = Math.floor(Math.random() * 10); // Random shape index
+        
+        this.imagePlaceholders[key] = {
+          slideIdx,
+          shapeIdx
+        };
+        
+        logs.push(`Found image placeholder for '${key}': Shape named '${this.imageShapeNames[key]}' on slide ${slideIdx+1}`);
+      });
+      
+      // Simulate finding text placeholders
+      Object.keys(this.textShapeNames).forEach(key => {
+        const slideIdx = Math.floor(Math.random() * 5); // Random slide index
+        const shapeIdx = Math.floor(Math.random() * 10); // Random shape index
+        const currentText = textDetails[key as keyof typeof textDetails] || '';
+        
+        this.textPlaceholders[key] = {
+          slideIdx,
+          shapeIdx,
+          currentText
+        };
+        
+        logs.push(`Found text placeholder for '${key}': Shape named '${this.textShapeNames[key]}' with text '${currentText}' on slide ${slideIdx+1}`);
+      });
+      
       // Simulate a delay for analysis
       setTimeout(() => {
         resolve({
           logs,
-          searchTexts: this.searchTexts
+          searchTexts: this.searchTexts,
+          textDetails
         });
       }, 1000);
     });
   }
   
-  async updatePresentation(replacements: Replacements): Promise<string[]> {
+  async updatePresentation(replacements: Replacements, imageFiles: { [key: string]: File | null }): Promise<string[]> {
     return new Promise((resolve) => {
       // In a real implementation, we would update the PPT file here
       // For demo purposes, we're simulating the update
@@ -107,25 +194,52 @@ class PresentationService {
       
       const logs: string[] = [];
       
-      // Simulate updating each shape
+      // Simulate updating each shape text
       Object.keys(this.shapeObjects).forEach(key => {
-        this.shapeObjects[key].forEach(shapeInfo => {
-          const newText = formattedReplacements[key as keyof Replacements];
-          logs.push(`Updated '${key}' on slide ${shapeInfo.slideIdx+1} from '${shapeInfo.currentText}' to '${newText}'`);
+        if (key in formattedReplacements) {
+          this.shapeObjects[key].forEach(shapeInfo => {
+            const newText = formattedReplacements[key as keyof typeof formattedReplacements];
+            logs.push(`Updated '${key}' text on slide ${shapeInfo.slideIdx+1} from '${shapeInfo.currentText}' to '${newText}'`);
+            
+            // Update the current text in our data structure
+            shapeInfo.currentText = newText;
+          });
+        }
+      });
+      
+      // Simulate updating text placeholders
+      Object.keys(this.textPlaceholders).forEach(key => {
+        if (this.textPlaceholders[key] && key in formattedReplacements) {
+          const placeholder = this.textPlaceholders[key];
+          const newText = formattedReplacements[key as keyof typeof formattedReplacements];
           
-          // Update the current text in our data structure
-          shapeInfo.currentText = newText;
-        });
+          if (placeholder) {
+            logs.push(`Updated text placeholder '${key}' on slide ${placeholder.slideIdx+1} from '${placeholder.currentText}' to '${newText}'`);
+            placeholder.currentText = newText;
+          }
+        }
+      });
+      
+      // Simulate updating images
+      Object.keys(imageFiles).forEach(key => {
+        const imageFile = imageFiles[key];
+        if (imageFile) {
+          const roleName = key.replace('_image', '');
+          const personName = replacements[roleName as keyof typeof replacements];
+          
+          const placeholder = this.imagePlaceholders[key];
+          if (placeholder) {
+            logs.push(`Updated image for '${roleName}' (${personName}) on slide ${placeholder.slideIdx+1} with file: ${imageFile.name}`);
+          }
+        }
       });
       
       // Update the searchTexts with the new values
       Object.keys(formattedReplacements).forEach(key => {
-        this.searchTexts[key] = formattedReplacements[key as keyof Replacements];
+        if (key in this.searchTexts) {
+          this.searchTexts[key] = formattedReplacements[key as keyof typeof formattedReplacements];
+        }
       });
-      
-      // In a real implementation, this is where we'd actually modify the PowerPoint file
-      // Since we can't actually modify the binary data in a web browser without a server,
-      // we'll simulate it by creating a "modified" blob
       
       // Create a copy of the original blob to simulate an update
       this.tempPresentationBlob = new Blob([this.presentationBlob], { type: this.presentationBlob.type });

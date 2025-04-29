@@ -200,7 +200,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-lavender">
       <div className="purple-gradient py-12">
         <div className="container">
           <h1 className="text-3xl sm:text-4xl font-bold text-white text-center mb-2">
@@ -230,10 +230,10 @@ const Index = () => {
         
         {isAnalyzed && (
           <Tabs defaultValue="content" className="mt-6">
-            <TabsList className="grid grid-cols-3 max-w-md mx-auto mb-6">
-              <TabsTrigger value="content">Content</TabsTrigger>
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="images">Images</TabsTrigger>
+            <TabsList className="grid grid-cols-3 max-w-md mx-auto mb-6 bg-thistle">
+              <TabsTrigger value="content" className="data-[state=active]:bg-mountbatten data-[state=active]:text-white">Content</TabsTrigger>
+              <TabsTrigger value="details" className="data-[state=active]:bg-mountbatten data-[state=active]:text-white">Details</TabsTrigger>
+              <TabsTrigger value="images" className="data-[state=active]:bg-mountbatten data-[state=active]:text-white">Images</TabsTrigger>
             </TabsList>
             
             <TabsContent value="content" className="mt-0">
@@ -294,9 +294,9 @@ const Index = () => {
         )}
       </div>
       
-      <footer className="bg-white border-t border-slate-200 py-6 mt-8">
+      <footer className="bg-white border-t border-thistle py-6 mt-8">
         <div className="container">
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-spacecadet/60">
             Slide Style Sync © {new Date().getFullYear()} - PowerPoint presentation editor
           </p>
         </div>

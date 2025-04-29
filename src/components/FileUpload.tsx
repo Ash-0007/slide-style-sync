@@ -53,23 +53,23 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelected, onAnalyzeClick,
   };
 
   return (
-    <Card className="w-full animate-fade-in">
+    <Card className="w-full animate-fade-in glass-card">
       <CardContent className="p-6">
         <div className="space-y-4">
           <div 
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer
-              ${dragging ? 'border-purple-light bg-purple-light/10' : 'border-slate-200 hover:border-purple-light/50'}`}
+              ${dragging ? 'border-mountbatten bg-thistle/20' : 'border-thistle hover:border-mountbatten/50'}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => document.getElementById('file-input')?.click()}
           >
             <div className="flex flex-col items-center justify-center space-y-2">
-              <Upload className="h-10 w-10 text-purple" />
-              <p className="text-sm text-gray-500">
-                Drag and drop your PowerPoint file here, or <span className="text-purple font-medium">browse</span>
+              <Upload className="h-10 w-10 text-mountbatten" />
+              <p className="text-sm text-spacecadet/70">
+                Drag and drop your PowerPoint file here, or <span className="text-mountbatten font-medium">browse</span>
               </p>
-              <p className="text-xs text-gray-400">Only .pptx files are supported</p>
+              <p className="text-xs text-spacecadet/50">Only .pptx files are supported</p>
             </div>
             <Input 
               id="file-input"
@@ -81,14 +81,14 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelected, onAnalyzeClick,
           </div>
 
           {fileName && (
-            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg animate-fade-in">
+            <div className="flex items-center justify-between bg-thistle/30 p-3 rounded-lg animate-fade-in">
               <div className="flex items-center space-x-3">
-                <FileText className="h-5 w-5 text-purple" />
+                <FileText className="h-5 w-5 text-mountbatten" />
                 <span className="text-sm font-medium truncate max-w-[200px]">{fileName}</span>
               </div>
               <Button 
                 onClick={onAnalyzeClick} 
-                className="bg-purple hover:bg-purple-dark"
+                className="bg-mountbatten hover:bg-mountbatten/80 text-white"
               >
                 Analyze
               </Button>

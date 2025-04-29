@@ -15,7 +15,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ onUpdate, onSave, isDisab
       <Button 
         onClick={onUpdate} 
         disabled={isDisabled}
-        className="flex-1 bg-purple hover:bg-purple-dark"
+        className="flex-1 bg-mountbatten hover:bg-mountbatten/80 text-white"
       >
         <Edit className="mr-2 h-4 w-4" />
         Update Presentation
@@ -25,7 +25,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ onUpdate, onSave, isDisab
         onClick={onSave} 
         disabled={isDisabled}
         variant="outline" 
-        className="flex-1 border-purple text-purple hover:bg-purple-light/10"
+        className="flex-1 border-mountbatten text-mountbatten hover:bg-thistle/30"
       >
         <Download className="mr-2 h-4 w-4" />
         Save As...

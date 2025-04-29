@@ -63,15 +63,66 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom colors
-				purple: {
-					light: '#9b87f5',
-					DEFAULT: '#7E69AB',
-					dark: '#6E59A5',
+				// Custom theme colors
+				lavender: {
+					DEFAULT: '#f5e6e8',
+					100: '#441b20',
+					200: '#883641',
+					300: '#bf5e6b',
+					400: '#daa2a9',
+					500: '#f5e6e8',
+					600: '#f7ebec',
+					700: '#f9f0f1',
+					800: '#fbf5f6',
+					900: '#fdfafa'
 				},
-				slate: {
-					50: '#f8fafc',
-					100: '#f1f5f9',
+				thistle: {
+					DEFAULT: '#d5c6e0',
+					100: '#2c1e37',
+					200: '#593b6e',
+					300: '#8559a5',
+					400: '#ae90c3',
+					500: '#d5c6e0',
+					600: '#ded2e7',
+					700: '#e6dded',
+					800: '#efe8f3',
+					900: '#f7f4f9'
+				},
+				rosequartz: {
+					DEFAULT: '#aaa1c8',
+					100: '#1f1b2e',
+					200: '#3e365b',
+					300: '#5e5089',
+					400: '#8274ad',
+					500: '#aaa1c8',
+					600: '#bcb4d3',
+					700: '#ccc7de',
+					800: '#dddae9',
+					900: '#eeecf4'
+				},
+				mountbatten: {
+					DEFAULT: '#967aa1',
+					100: '#1e1721',
+					200: '#3c2f42',
+					300: '#5a4662',
+					400: '#785d83',
+					500: '#967aa1',
+					600: '#aa94b3',
+					700: '#bfaec6',
+					800: '#d4c9d9',
+					900: '#eae4ec'
+				},
+				spacecadet: {
+					DEFAULT: '#192a51',
+					100: '#050810',
+					200: '#0a1121',
+					300: '#0f1931',
+					400: '#142242',
+					500: '#192a51',
+					600: '#2c4a90',
+					700: '#466dc6',
+					800: '#849dd9',
+					900: '#c1ceec'
 				}
 			},
 			borderRadius: {
@@ -122,8 +173,9 @@ export default {
 				'slide-in-right': 'slide-in-right 0.3s ease-out'
 			},
 			backgroundImage: {
-				'gradient-purple': 'linear-gradient(102.3deg, rgba(147,39,143,1) 5.9%, rgba(234,172,232,1) 64%, rgba(246,219,245,1) 89%)',
+				'gradient-purple': 'linear-gradient(102.3deg, rgba(150,122,161,0.9) 5.9%, rgba(170,161,200,0.9) 64%, rgba(213,198,224,0.9) 89%)',
 				'gradient-soft': 'linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%)',
+				'gradient-lavender': 'linear-gradient(to right, #f5e6e8, #d5c6e0)'
 			}
 		}
 	},

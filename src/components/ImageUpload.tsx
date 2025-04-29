@@ -42,7 +42,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ label, roleTitle, roleName, o
       </label>
       
       <div className="relative">
-        <Avatar className="w-24 h-24 border-2 border-dashed border-purple hover:border-purple-light transition-colors cursor-pointer">
+        <Avatar className="w-24 h-24 border-2 border-dashed border-mountbatten hover:border-mountbatten/80 transition-colors cursor-pointer">
           {imagePreview ? (
             <>
               <AvatarImage src={imagePreview} className="object-cover" />
@@ -55,9 +55,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ label, roleTitle, roleName, o
               </button>
             </>
           ) : (
-            <AvatarFallback className="bg-purple-light/20 flex flex-col items-center justify-center p-2">
-              <UploadCloud className="h-8 w-8 text-purple" />
-              <span className="text-[10px] text-purple mt-1">Upload</span>
+            <AvatarFallback className="bg-thistle/30 flex flex-col items-center justify-center p-2">
+              <UploadCloud className="h-8 w-8 text-mountbatten" />
+              <span className="text-[10px] text-spacecadet mt-1">Upload</span>
             </AvatarFallback>
           )}
         </Avatar>
@@ -71,7 +71,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ label, roleTitle, roleName, o
         />
       </div>
       
-      <p className="text-xs text-muted-foreground font-medium">
+      <p className="text-xs text-spacecadet/60 font-medium">
         {roleTitle}
       </p>
     </div>

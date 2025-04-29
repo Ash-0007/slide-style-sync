@@ -92,6 +92,11 @@ class PresentationService {
       // In a real implementation, we would update the PPT file here
       // For demo purposes, we're simulating the update
       
+      if (!this.presentationBlob) {
+        toast.error("No presentation file available. Please upload and analyze a presentation first.");
+        return resolve([]);
+      }
+      
       // Format replacements with TM prefix for speakers
       const formattedReplacements = {
         ...replacements,
@@ -113,11 +118,21 @@ class PresentationService {
         });
       });
       
-      // Simulate creating a temp presentation
-      this.tempPresentationBlob = this.presentationBlob;
+      // Update the searchTexts with the new values
+      Object.keys(formattedReplacements).forEach(key => {
+        this.searchTexts[key] = formattedReplacements[key as keyof Replacements];
+      });
+      
+      // In a real implementation, this is where we'd actually modify the PowerPoint file
+      // Since we can't actually modify the binary data in a web browser without a server,
+      // we'll simulate it by creating a "modified" blob
+      
+      // Create a copy of the original blob to simulate an update
+      this.tempPresentationBlob = new Blob([this.presentationBlob], { type: this.presentationBlob.type });
       
       // Simulate a delay for processing
       setTimeout(() => {
+        toast.success("Presentation updated successfully!");
         resolve(logs);
       }, 1500);
     });

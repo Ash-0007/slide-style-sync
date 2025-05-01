@@ -1,16 +1,20 @@
+# Core FastAPI and Server
 fastapi
-uvicorn[standard] 
-gunicorn          
+uvicorn[standard] # Includes performance extras like uvloop, httptools
+gunicorn          # Recommended production WSGI server
 
-
+# Async file handling
 aiofiles
 
-
+# Data validation
 pydantic
 
-
+# PowerPoint processing
 python-pptx
-Pillow            
-aspose-slides     
+Pillow            # Image processing (likely a dependency for others too)
+# aspose-slides     # Removed - Not currently used
+# python-pptx-tools # This might fail on servers without PowerPoint/COM
+
+# Add other specific dependencies if you use them
 
 

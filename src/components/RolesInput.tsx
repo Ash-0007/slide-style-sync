@@ -108,11 +108,21 @@ const RolesInput: React.FC<RolesInputProps> = ({
   geTitle,
   onGeTitleChange
 }) => {
+  // Track which role button is being hovered over
+  const [hoveredRole, setHoveredRole] = useState<string | null>(null);
   const gePlaceholder = geTitle === "Speaker 3" ? "Select Speaker 3 Name..." : "Select GE Name...";
 
-  const buttonBaseStyle = "relative px-2 py-1 rounded-md text-xs font-medium cursor-pointer transition-colors z-10";
-  const buttonInactiveStyle = "text-muted-foreground hover:text-accent-foreground";
-  const buttonActiveStyle = "text-primary-foreground";
+  const buttonBaseStyle = "relative px-2 py-1 rounded-md text-xs font-medium cursor-pointer transition-colors flex-1 text-center z-10";
+
+  // Determine text color based on both selection and hover state
+  const getTextColor = (role: string) => {
+    // If hovering or selected, use the active text color
+    if (hoveredRole === role || (!hoveredRole && geTitle === role)) {
+      return "text-mint_green";
+    }
+    // Otherwise use the inactive color
+    return "text-raisin_black";
+  };
 
   return (
     <Card className="w-full animate-fade-in bg-card text-card-foreground">
@@ -135,38 +145,49 @@ const RolesInput: React.FC<RolesInputProps> = ({
               />
             </div>
             <div className="flex flex-col space-y-2">
-              <div className="relative flex items-center space-x-2 p-0.5 border border-input rounded-md h-6">
+              <Label>Role Type</Label>
+              <div 
+                className="relative flex items-center space-x-0 border border-input rounded-md p-0.5 h-6"
+                onMouseLeave={() => setHoveredRole(null)}
+              >
                 <motion.div
-                  layoutId="ge-title-highlight"
-                  className="absolute inset-y-0 bg-midnight_green rounded-[5px] z-0"
+                  layoutId="ge-title-highlight" 
+                  className="absolute inset-y-0 bg-midnight_green rounded-[5px] z-0" 
                   initial={false}
                   animate={{
-                    left: geTitle === "General Evaluator" ? "2px" : "50%",
-                    width: geTitle === "General Evaluator" ? "calc(50% - 4px)" : "calc(50% - 4px)"
+                    left: hoveredRole === 'General Evaluator' ? '2px' : 
+                         (hoveredRole === 'Speaker 3' ? '50%' : 
+                         (geTitle === 'General Evaluator' ? '2px' : '50%')),
+                    width: 'calc(50% - 2px)' 
                   }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  transition={{ type: "spring", stiffness: 350, damping: 35 }} 
                 />
                 
+                {/* General Evaluator Button */}
                 <button
                   type="button"
                   onClick={() => !disabled && onGeTitleChange("General Evaluator")}
+                  onMouseEnter={() => !disabled && setHoveredRole("General Evaluator")}
                   disabled={disabled}
                   className={cn(
                     buttonBaseStyle,
-                    "w-1/2 text-center",
-                    geTitle === "General Evaluator" ? buttonActiveStyle : buttonInactiveStyle
+                    "rounded-r-none",
+                    getTextColor("General Evaluator") // Dynamic text color
                   )}
                 >
                   General Evaluator
                 </button>
+                
+                {/* Speaker 3 Button */}
                 <button
                   type="button"
                   onClick={() => !disabled && onGeTitleChange("Speaker 3")}
+                  onMouseEnter={() => !disabled && setHoveredRole("Speaker 3")}
                   disabled={disabled}
                   className={cn(
                     buttonBaseStyle,
-                    "w-1/2 text-center",
-                    geTitle === "Speaker 3" ? buttonActiveStyle : buttonInactiveStyle
+                    "rounded-l-none",
+                    getTextColor("Speaker 3") // Dynamic text color
                   )}
                 >
                   Speaker 3
@@ -197,7 +218,7 @@ const RolesInput: React.FC<RolesInputProps> = ({
                 disabled={disabled}
               />
             </div>
-             <div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="speaker2">Speaker 2</Label>
               <RoleCombobox 
                 roleKey="speaker2"

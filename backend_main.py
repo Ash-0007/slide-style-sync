@@ -22,16 +22,26 @@ from pptx.util import Inches, Pt
 from pptx.exc import PackageNotFoundError
 
 
+# --- Image Processing Imports (Aspose - Removed as unused) ---
+# try:
+#     import aspose.slides as slides
+#     import aspose.pydrawing as drawing
+#     from PIL import Image as PILImage # Keep PIL if needed elsewhere, otherwise remove
+# except ImportError:
+#     # print("ERROR: Required libraries 'aspose.slides' and/or 'Pillow' not found.")
+#     # print("Please install them using: pip install aspose.slides Pillow")
+#     slides = None
+#     drawing = None
+#     PILImage = None
+
+# --- Pillow Import (If needed independently) ---
+# Make sure Pillow is still needed, e.g., by pptx_tools or direct use
+# If not, remove this too and from requirements.txt
 try:
-    import aspose.slides as slides
-    import aspose.pydrawing as drawing
     from PIL import Image as PILImage 
 except ImportError:
-    print("ERROR: Required libraries 'aspose.slides' and/or 'Pillow' not found.")
-    print("Please install them using: pip install aspose.slides Pillow")
-    
-    slides = None 
-    drawing = None
+    print("ERROR: Required library 'Pillow' not found.")
+    print("Please install it using: pip install Pillow")
     PILImage = None
 
 
@@ -50,7 +60,7 @@ except ImportError:
 except Exception as pptx_tools_e:
     print(f"ERROR: Could not import from pptx_tools: {pptx_tools_e}")
     print("Ensure any dependencies (like COM components or PowerPoint) are available.")
-    
+
 
 
 
@@ -85,7 +95,7 @@ def save_profiles(profiles: Dict[str, str]):
             json.dump(profiles, f, indent=4)
     except IOError as e:
         print(f"Error saving profiles file ({PROFILES_FILE}): {e}")
-        
+
 
 
 
@@ -223,7 +233,7 @@ def update_text_preserving_format(shape, new_text):
             p = text_frame.paragraphs[p_idx]
             text_frame._element.remove(p._element)
 
-        
+
         first_para.clear() 
 
         
@@ -623,7 +633,7 @@ def update_presentation_data(ppt_stream: io.BytesIO, update_data: Dict[str, Any]
         except Exception as e:
             debug_log.append(f"Error processing image placeholder '{placeholder_key}' (ID: {shape_id}): {str(e)}")
 
-    
+
     debug_log.append("--- Updating Role Title (by Shape Name) ---")
     role_title_placeholders = analysis_results.get('role_title_placeholders_found', {})
     for key, placeholder_info in role_title_placeholders.items():
@@ -693,74 +703,6 @@ def update_presentation_data(ppt_stream: io.BytesIO, update_data: Dict[str, Any]
     output_stream.seek(0)
 
     return output_stream.getvalue(), debug_log
-
-
-
-def generate_cropped_slide_image(ppt_stream: io.BytesIO, target_slide_index: int, target_width: int, target_height: int) -> bytes:
-    """
-    Generates a cropped image (PNG) from a specific slide of a presentation.
-    Requires aspose.slides and Pillow.
-    """
-    if not slides or not PILImage:
-        raise RuntimeError("Required imaging libraries (aspose.slides, Pillow) are not installed.")
-
-    try:
-        
-        pres = slides.Presentation(ppt_stream)
-
-        if not pres.slides or target_slide_index >= len(pres.slides):
-            raise ValueError(f"Target slide index {target_slide_index} is out of range.")
-
-        
-        slide = pres.slides[target_slide_index]
-
-        
-        
-        
-        scale_x = 2.0 
-        scale_y = 2.0
-        thumbnail = slide.get_thumbnail(scale_x, scale_y)
-
-        
-        img_byte_arr = io.BytesIO()
-        thumbnail.save(img_byte_arr, drawing.imaging.ImageFormat.png)
-        img_byte_arr.seek(0)
-        img = PILImage.open(img_byte_arr).convert("RGBA") 
-
-        
-        img_width, img_height = img.size
-        left = (img_width - target_width) / 2
-        top = (img_height - target_height) / 2
-        right = (img_width + target_width) / 2
-        bottom = (img_height + target_height) / 2
-
-        
-        left = max(0, int(left))
-        top = max(0, int(top))
-        right = min(img_width, int(right))
-        bottom = min(img_height, int(bottom))
-
-        
-        if right <= left or bottom <= top:
-             print(f"Warning: Target crop dimensions ({target_width}x{target_height}) might be too large for rendered slide ({img_width}x{img_height}). Returning uncropped.")
-             
-             img_byte_arr.seek(0)
-             return img_byte_arr.getvalue()
-
-        
-        cropped_img = img.crop((left, top, right, bottom))
-
-        
-        cropped_bytes_io = io.BytesIO()
-        cropped_img.save(cropped_bytes_io, format='PNG')
-        cropped_bytes_io.seek(0)
-
-        return cropped_bytes_io.getvalue()
-
-    except Exception as e:
-        print(f"Error generating cropped slide image: {e}")
-        
-        raise RuntimeError(f"Failed to generate cropped image: {e}")
 
 
 
@@ -967,7 +909,7 @@ async def update_ppt_and_get_image(update_request: UpdateRequestData):
             'theme': update_request.theme,
             'day': update_request.day, 'date': update_request.date, 'month': update_request.month, 'year': update_request.year,
             'tmod': f"TM {update_request.tmod}" if update_request.tmod else "", 
-            'ge': f"TM {update_request.ge}" if update_request.ge else "",
+            'ge': update_request.ge,
             'speaker1': f"TM {update_request.speaker1}" if update_request.speaker1 else "", 
             'speaker2': f"TM {update_request.speaker2}" if update_request.speaker2 else "",
             'meeting_mode': update_request.meeting_mode,

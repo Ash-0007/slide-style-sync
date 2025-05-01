@@ -11,6 +11,7 @@ pydantic
 
 # PowerPoint processing
 python-pptx
+python-multipart
 Pillow            # Image processing (likely a dependency for others too)
 # aspose-slides     # Removed - Not currently used
 # python-pptx-tools # This might fail on servers without PowerPoint/COM

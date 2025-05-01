@@ -36,8 +36,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isAnalyzed }
   return (
     <div className="w-64 bg-card text-card-foreground border border-border p-4 flex flex-col shadow-md m-4 rounded-lg">
       <div className="mb-8">
-        <h2 className="text-lg font-heading font-semibold text-card-foreground mb-1">Slide Style Sync</h2>
-        <p className="text-xs text-muted-foreground">Presentation Editor</p>
+        <h2 className="text-lg font-heading font-semibold text-card-foreground mb-1">Whee poster</h2>
+        <p className="text-xs text-muted-foreground">Toastmaster posters 💙</p>
       </div>
       
       <nav className="space-y-6">

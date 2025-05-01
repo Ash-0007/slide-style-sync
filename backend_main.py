@@ -718,6 +718,7 @@ origins = [
     "http://127.0.0.1:8080", 
     "https://wheepresentation-nzovdx4q0-ash-0007s-projects.vercel.app",
     "https://wheepresentation.vercel.app/",
+    "https://slide-style-sync.onrender.com",
     
 ]
 

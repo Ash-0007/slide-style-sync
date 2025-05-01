@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard] 
+gunicorn          
+
+
+aiofiles
+
+
+pydantic
+
+
+python-pptx
+Pillow            
+aspose-slides     
+
+

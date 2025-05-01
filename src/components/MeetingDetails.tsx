@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,16 +8,18 @@ interface MeetingDetailsProps {
   meetingTime: string;
   venue: string;
   onDetailChange: (field: string, value: string) => void;
+  disabled?: boolean;
 }
 
 const MeetingDetails: React.FC<MeetingDetailsProps> = ({ 
   meetingMode, 
   meetingTime, 
   venue, 
-  onDetailChange 
+  onDetailChange,
+  disabled = false
 }) => {
   return (
-    <Card className="w-full animate-fade-in">
+    <Card className="w-full animate-fade-in bg-card text-card-foreground">
       <CardHeader className="pb-3">
         <CardTitle>Meeting Details</CardTitle>
       </CardHeader>
@@ -30,7 +31,8 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({
               id="meeting-mode" 
               placeholder="Online or In-Person" 
               value={meetingMode} 
-              onChange={(e) => onDetailChange('meeting_mode', e.target.value)}
+              onChange={(e) => onDetailChange('meetingMode', e.target.value)}
+              disabled={disabled}
             />
           </div>
           <div className="space-y-2">
@@ -39,7 +41,8 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({
               id="meeting-time" 
               placeholder="e.g. 7:00 PM - 9:00 PM" 
               value={meetingTime} 
-              onChange={(e) => onDetailChange('meeting_time', e.target.value)}
+              onChange={(e) => onDetailChange('meetingTime', e.target.value)}
+              disabled={disabled}
             />
           </div>
           <div className="space-y-2">
@@ -49,6 +52,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({
               placeholder="Location" 
               value={venue} 
               onChange={(e) => onDetailChange('venue', e.target.value)}
+              disabled={disabled}
             />
           </div>
         </div>

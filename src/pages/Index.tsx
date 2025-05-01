@@ -1,42 +1,74 @@
-
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import FileUpload from '@/components/FileUpload';
 import DateSelection from '@/components/DateSelection';
 import ThemeInput from '@/components/ThemeInput';
 import RolesInput from '@/components/RolesInput';
-import StatusOutput from '@/components/StatusOutput';
 import ActionButtons from '@/components/ActionButtons';
 import MeetingDetails from '@/components/MeetingDetails';
 import RolesImageUpload from '@/components/RolesImageUpload';
 import Sidebar from '@/components/Sidebar';
-import { formatDateInfo } from '@/utils/dateUtils';
-import PresentationService from '@/services/PresentationService';
+import presentationService, { BackendAnalysisResult, UpdateRequestData, Profile, PresentationBlob } from '@/services/PresentationService';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { format, parse } from 'date-fns';
+import { getDateSuffix } from '@/utils/dateUtils';
+import UpdateLoadingAnimation from '@/components/UpdateLoadingAnimation';
+import { useStatus } from '@/contexts/StatusContext';
+
+
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+};
+
+
+const overlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+};
 
 const Index = () => {
-  // File state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isAnalyzed, setIsAnalyzed] = useState(false);
   
-  // Navigation state
+  const { status, warnings, setStatus, setWarnings, addWarning, clearStatus } = useStatus();
+
+  
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [fileId, setFileId] = useState<string | null>(null);
+
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  
   const [activeTab, setActiveTab] = useState('upload');
   
-  // Date state
-  const [dateInfo, setDateInfo] = useState(formatDateInfo(new Date()));
   
-  // Form state
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  
+  
   const [theme, setTheme] = useState('');
   const [tmod, setTmod] = useState('');
   const [ge, setGe] = useState('');
   const [speaker1, setSpeaker1] = useState('');
   const [speaker2, setSpeaker2] = useState('');
   
-  // Meeting details state
+  
+  const [geTitle, setGeTitle] = useState<string>("General Evaluator"); 
+  
+  
+  const [profileNames, setProfileNames] = useState<string[]>([]);
+  
+  
   const [meetingMode, setMeetingMode] = useState('');
   const [meetingTime, setMeetingTime] = useState('');
   const [venue, setVenue] = useState('');
   
-  // Images state
+  
   const [imageFiles, setImageFiles] = useState<{[key: string]: File | null}>({
     'tmod_image': null,
     'ge_image': null,
@@ -44,19 +76,43 @@ const Index = () => {
     'speaker2_image': null
   });
   
-  // Status and logs
-  const [status, setStatus] = useState('Ready to start');
-  const [logs, setLogs] = useState<string[]>([]);
   
+  const [serverImages, setServerImages] = useState<string[]>([]);
+  
+  
+  const [updatedBlob, setUpdatedBlob] = useState<PresentationBlob | null>(null);
+
+  
+
+  useEffect(() => {
+    
+    const fetchData = async () => {
+      try {
+        const [imageResponse, profilesResponse] = await Promise.all([
+          presentationService.listImages(),
+          presentationService.getProfiles()
+        ]);
+        setServerImages(imageResponse.images);
+        setProfileNames(profilesResponse.profiles.map((p: Profile) => p.name));
+      } catch (err) {
+        console.error("Failed to fetch initial data (images/profiles):", err);
+        setStatus("Error loading initial data. Profiles/images might be unavailable.");
+        addWarning("Failed to load initial images or profiles. Autocomplete might not work.");
+      }
+    };
+    fetchData();
+  }, []);
+
+  
+
   const handleFileSelected = (file: File) => {
     setSelectedFile(file);
+    setFileName(file.name);
     setIsAnalyzed(false);
-    setStatus(`File selected: ${file.name}`);
-    setLogs([]);
-  };
-  
-  const handleDateChange = (date: Date) => {
-    setDateInfo(formatDateInfo(date));
+    setFileId(null);
+    setStatus(`File selected: ${file.name}. Click Analyze.`);
+    setWarnings([]);
+    setError(null);
   };
   
   const handleRoleChange = (role: string, value: string) => {
@@ -78,10 +134,10 @@ const Index = () => {
   
   const handleDetailChange = (field: string, value: string) => {
     switch (field) {
-      case 'meeting_mode':
+      case 'meetingMode':
         setMeetingMode(value);
         break;
-      case 'meeting_time':
+      case 'meetingTime':
         setMeetingTime(value);
         break;
       case 'venue':
@@ -90,255 +146,300 @@ const Index = () => {
     }
   };
   
-  const handleImageSelected = (role: string, file: File | null) => {
+  const handleImageSelected = (roleKey: string, file: File | null) => {
     setImageFiles(prev => ({
       ...prev,
-      [role]: file
+      [roleKey]: file
     }));
+    if (file) {
+      handleImageUpload(roleKey, file);
+    }
+  };
+  
+  const handleImageUpload = async (roleKey: string, file: File) => {
+    const roleName = roleKey.replace('_image','');
+    setStatus(`Uploading image for ${roleName}...`);
+    setIsLoading(true);
+    try {
+      await presentationService.uploadImage(file);
+      setStatus(`Image for ${roleName} uploaded successfully.`);
+      const response = await presentationService.listImages();
+      setServerImages(response.images);
+    } catch (err) {
+      setStatus(`Failed to upload image for ${roleName}.`);
+      addWarning(`Upload failed for ${roleName}. Please try again.`);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleAnalyzeClick = async () => {
     if (!selectedFile) {
-      toast.error('Please select a PowerPoint file first');
+      setStatus('Please select a PowerPoint file first.');
       return;
     }
     
+    setIsLoading(true);
     setStatus('Analyzing presentation...');
-    setLogs([]);
-    
+    setWarnings([]);
+    setError(null);
+    setFileId(null);
+
     try {
-      const result = await PresentationService.analyzePPT(selectedFile);
+      const result = await presentationService.analyzePPT(selectedFile);
       
-      setLogs(result.logs);
-      setStatus(`Presentation analyzed. Found ${result.logs.length} elements to replace.`);
+      setFileId(result.fileId);
+      setWarnings(result.warnings || []);
       setIsAnalyzed(true);
       
-      // Set the field values based on analysis
-      if (result.searchTexts.theme) setTheme(result.searchTexts.theme);
-      if (result.searchTexts.tmod && result.searchTexts.tmod.startsWith('TM ')) {
-        setTmod(result.searchTexts.tmod.substring(3));
+      const initialValues = result.analysisDetails.initial_values;
+      if (initialValues) {
+        setTheme(initialValues.theme || '');
+        setTmod(initialValues.tmod || '');
+        setGe(initialValues.ge || '');
+        setSpeaker1(initialValues.speaker1 || '');
+        setSpeaker2(initialValues.speaker2 || '');
+        setMeetingMode(initialValues.meeting_mode || '');
+        setMeetingTime(initialValues.meeting_time || '');
+        setVenue(initialValues.venue || '');
+        
+        
+        const { day, date, month, year } = initialValues;
+        if (day && date && month && year) {
+          try {
+            
+            
+            const dateNumStr = date.replace(/(st|nd|rd|th)$/i, '');
+            const dateString = `${dateNumStr} ${month} ${year}`;
+            
+            const parsedDate = parse(dateString, 'd MMMM yyyy', new Date());
+            setSelectedDate(parsedDate);
+            
+            setStatus(`Parsed date from presentation: ${format(parsedDate, "PPP")}`);
+          } catch (e) {
+            console.error("Failed to parse date from analysis:", e);
+            setStatus("Could not automatically parse date. Please select manually.");
+            addWarning("Failed to parse date from presentation analysis.");
+            setSelectedDate(new Date());
+          }
+        } else {
+           setSelectedDate(new Date());
+           setStatus("Date not fully found in presentation. Defaulting to today.");
+        }
+        
       }
-      if (result.searchTexts.ge) {
-        setGe(result.searchTexts.ge.startsWith('TM ') ? 
-              result.searchTexts.ge.substring(3) : 
-              result.searchTexts.ge);
+
+      if (result.warnings && result.warnings.length > 0) {
+        result.warnings.forEach(warning => addWarning(warning));
+        setStatus(`Analysis complete with ${result.warnings.length} warning(s).`);
+      } else {
+        setStatus('Analysis complete!');
       }
-      if (result.searchTexts.speaker1) {
-        setSpeaker1(result.searchTexts.speaker1.startsWith('TM ') ? 
-                  result.searchTexts.speaker1.substring(3) : 
-                  result.searchTexts.speaker1);
-      }
-      if (result.searchTexts.speaker2) {
-        setSpeaker2(result.searchTexts.speaker2.startsWith('TM ') ? 
-                  result.searchTexts.speaker2.substring(3) : 
-                  result.searchTexts.speaker2);
-      }
-      
-      // Set meeting details
-      if (result.textDetails) {
-        if (result.textDetails.meeting_mode) setMeetingMode(result.textDetails.meeting_mode);
-        if (result.textDetails.meeting_time) setMeetingTime(result.textDetails.meeting_time);
-        if (result.textDetails.venue) setVenue(result.textDetails.venue);
-      }
-      
-      // Switch to content tab after successful analysis
+
       setActiveTab('content');
-      
-      toast.success('Presentation analyzed successfully');
-    } catch (error) {
-      console.error('Error analyzing presentation:', error);
-      setStatus('Error analyzing presentation');
-      toast.error('Failed to analyze presentation');
-    }
-  };
-  
-  const handleUpdatePresentation = async () => {
-    if (!selectedFile || !isAnalyzed) {
-      toast.error('Please select and analyze a PowerPoint file first');
-      return;
-    }
-    
-    setStatus('Updating presentation...');
-    
-    try {
-      const updateLogs = await PresentationService.updatePresentation(
-        {
-          theme,
-          day: dateInfo.day,
-          date: dateInfo.date,
-          month: dateInfo.month,
-          year: dateInfo.year,
-          tmod,
-          ge,
-          speaker1,
-          speaker2,
-          meeting_mode: meetingMode,
-          meeting_time: meetingTime,
-          venue: venue
-        },
-        imageFiles
-      );
-      
-      setLogs(updateLogs);
-      setStatus('Presentation updated. Click "Save As..." to save the changes.');
-      toast.success('Presentation updated successfully');
-    } catch (error) {
-      console.error('Error updating presentation:', error);
-      setStatus('Error updating presentation');
-      toast.error('Failed to update presentation');
-    }
-  };
-  
-  const handleSavePresentation = () => {
-    if (!selectedFile || !isAnalyzed) {
-      toast.error('Please select and analyze a PowerPoint file first');
-      return;
-    }
-    
-    try {
-      PresentationService.savePresentation(selectedFile.name);
-      setStatus(`Presentation saved as ${selectedFile.name.replace('.pptx', '')}_edited.pptx`);
-    } catch (error) {
-      console.error('Error saving presentation:', error);
-      setStatus('Error saving presentation');
-      toast.error('Failed to save presentation');
+    } catch (error: any) {
+      setStatus(`Analysis failed: ${error.message}`);
+      addWarning('Failed to analyze presentation. Please check the file or try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const renderContent = () => {
-    if (activeTab === 'upload' || !isAnalyzed) {
-      return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <FileUpload 
-            onFileSelected={handleFileSelected}
-            onAnalyzeClick={handleAnalyzeClick}
-            fileName={selectedFile?.name || null}
-          />
-          <StatusOutput 
-            status={status}
-            logs={logs}
-          />
-        </div>
-      );
-    } else if (activeTab === 'content') {
-      return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <DateSelection 
-              dateInfo={dateInfo}
-              onDateChange={handleDateChange}
-            />
-            
-            <ThemeInput 
-              theme={theme}
-              onThemeChange={setTheme}
-            />
-          </div>
-          
-          <div className="space-y-6">
-            <RolesInput 
-              tmod={tmod}
-              ge={ge}
-              speaker1={speaker1}
-              speaker2={speaker2}
-              onRoleChange={handleRoleChange}
-            />
-            <StatusOutput 
-              status={status}
-              logs={logs}
-            />
-          </div>
-        </div>
-      );
-    } else if (activeTab === 'details') {
-      return (
-        <div className="space-y-6">
-          <MeetingDetails 
-            meetingMode={meetingMode}
-            meetingTime={meetingTime}
-            venue={venue}
-            onDetailChange={handleDetailChange}
-          />
-          <StatusOutput 
-            status={status}
-            logs={logs}
-          />
-        </div>
-      );
-    } else if (activeTab === 'images') {
-      return (
-        <div className="space-y-6">
-          <RolesImageUpload 
-            onImageSelected={handleImageSelected}
+  const handleUpdateClick = async () => {
+    if (!fileId) {
+      setStatus("Cannot update: File ID is missing. Please analyze again.");
+      return;
+    }
+
+    if (!selectedDate) {
+      setStatus("Meeting date is not selected.");
+      setIsLoading(false);
+      setIsUpdating(false);
+      return;
+    }
+    
+    setIsUpdating(true);
+    setIsLoading(true);
+    setWarnings([]);
+    setUpdatedBlob(null);
+    setError(null);
+
+    
+    let formattedDate = {
+      day: selectedDate ? format(selectedDate, 'EEE').toUpperCase() : '',
+      date: selectedDate ? format(selectedDate, 'd') + getDateSuffix(selectedDate.getDate()) : '',
+      month: selectedDate ? format(selectedDate, 'MMMM').toUpperCase() : '',
+      year: selectedDate ? format(selectedDate, 'yyyy') : '',
+    };
+    
+
+    const updateData: UpdateRequestData = {
+      fileId,
+      theme,
+      day: formattedDate.day,
+      date: formattedDate.date,
+      month: formattedDate.month,
+      year: formattedDate.year,
+      tmod,
+      ge,
+      speaker1,
+      speaker2,
+      meetingMode: meetingMode,
+      meetingTime: meetingTime,
+      venue,
+      
+      ge_title: geTitle,
+      
+      
+    };
+
+    try {
+      const blob: PresentationBlob = await presentationService.updatePresentation(updateData);
+      setUpdatedBlob(blob);
+      setStatus("Presentation updated. Ready to save.");
+    } catch (error: any) {
+      setStatus(`Update failed: ${error.message}`);
+      addWarning("Failed to update presentation. Please check details or try again.");
+    } finally {
+      setIsLoading(false);
+      setIsUpdating(false);
+    }
+  };
+
+  const handleSaveClick = () => {
+    if (!updatedBlob) {
+      setStatus("No updated presentation available to save. Please update first.");
+      return;
+    }
+    if (!fileName) {
+      addWarning("Original filename not found, using default: updated_presentation.pptx");
+      setStatus("Saving presentation (using default filename)...")
+    } else {
+      let downloadFilename = updatedBlob.filename || fileName?.replace(/\.pptx$/i, '_updated.pptx') || "updated_presentation.pptx";
+      setStatus("Saving presentation...");
+
+      try {
+        presentationService.saveBlob(updatedBlob, downloadFilename);
+        setStatus(`Presentation saved as ${downloadFilename}.`);
+      } catch (error: any) {
+        setStatus(`Save failed: ${error.message}`);
+        addWarning("Failed to save the presentation file.");
+      }
+    }
+  };
+  
+  return (
+    <div className="flex h-screen relative">
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isAnalyzed={isAnalyzed} />
+      <div className="flex-1 flex flex-col p-3 overflow-y-auto">
+        {/* Progress Indicator Header */}
+        {/* Revert heading to default foreground color */}
+        {/* Reduce margin-bottom on the title */}
+        <h2 className="text-2xl font-semibold mb-2">
+          {activeTab === 'upload' ? 'Step 1: Upload & Analyze Presentation' : 'Step 2: Edit Content Details'}
+        </h2>
+        
+        {/* Main Content Area (Always rendered now) */}
+        <motion.div
+          className="flex-1 flex flex-col gap-4"
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
+        >
+          {/* --- Upload Tab Content --- */}
+          {activeTab === 'upload' && (
+            <div className="mb-6">
+              <FileUpload 
+                onFileSelected={handleFileSelected} 
+                onAnalyzeClick={handleAnalyzeClick} 
+                fileName={fileName} 
+                isLoading={isLoading} 
+              />
+            </div>
+          )}
+
+          {/* --- Content Tab Content --- */}
+          {activeTab === 'content' && (
+            <>
+              {/* Remove margin-bottom from this grid container */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="col-span-1">
+                  <DateSelection date={selectedDate} onDateChange={setSelectedDate} />
+                </div>
+                <div className="col-span-1">
+                  <ThemeInput theme={theme} onThemeChange={setTheme} />
+                </div>
+                <div className="col-span-1 md:col-span-2">
+          <RolesInput
             tmod={tmod}
             ge={ge}
             speaker1={speaker1}
             speaker2={speaker2}
+            onRoleChange={handleRoleChange}
+            profileNames={profileNames}
+                    disabled={isLoading} 
+                    
+                    geTitle={geTitle}
+                    onGeTitleChange={setGeTitle} 
           />
-          <StatusOutput 
-            status={status}
-            logs={logs}
-          />
-        </div>
-      );
-    }
-  };
+                </div>
+              </div>
 
-  return (
-    <div className="min-h-screen bg-neutral-50 flex">
-      <Sidebar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-        isAnalyzed={isAnalyzed} 
-      />
-      
-      <div className="flex-1 flex flex-col">
-        <div className="bg-gradient-primary py-6">
-          <div className="container px-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white text-center mb-1 font-heading">
-              Slide Style Sync
-            </h1>
-            <p className="text-center text-white/80 text-base">
-              PowerPoint Presentation Editor
-            </p>
-          </div>
-        </div>
-        
-        <div className="container py-8 px-6 flex-1">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-neutral-800 font-heading mb-2">
-              {activeTab === 'upload' ? 'File Upload' : 
-               activeTab === 'content' ? 'Content Editor' : 
-               activeTab === 'details' ? 'Meeting Details' : 'Profile Images'}
-            </h2>
-            <p className="text-neutral-500">
-              {activeTab === 'upload' ? 'Upload your PowerPoint file to get started' : 
-               activeTab === 'content' ? 'Edit the date, theme, and roles in your presentation' : 
-               activeTab === 'details' ? 'Update meeting mode, time, and venue information' : 'Add profile pictures for each role'}
-            </p>
-          </div>
-          
-          {renderContent()}
-          
-          {isAnalyzed && (
-            <div className="mt-8">
-              <ActionButtons 
-                onUpdate={handleUpdatePresentation}
-                onSave={handleSavePresentation}
-                isDisabled={false}
-              />
-            </div>
+              {/* Keep margin on subsequent wrappers */}
+              <div className="mb-4">
+          <MeetingDetails
+            meetingMode={meetingMode}
+            meetingTime={meetingTime}
+            venue={venue}
+            onDetailChange={handleDetailChange}
+                  disabled={isLoading}
+          />
+              </div>
+              <div className="mb-4">
+          <RolesImageUpload
+                  tmodName={tmod}
+                  geName={ge}
+                  speaker1Name={speaker1}
+                  speaker2Name={speaker2}
+                  geTitle={geTitle}
+            imageFiles={imageFiles}
+            onImageSelected={handleImageSelected}
+            serverImages={serverImages}
+                  disabled={isLoading}
+                />
+              </div>
+            </>
           )}
-        </div>
-        
-        <footer className="bg-white border-t border-neutral-200 py-4">
-          <div className="container px-6">
-            <p className="text-center text-sm text-neutral-500">
-              Slide Style Sync © {new Date().getFullYear()} - PowerPoint presentation editor
-            </p>
+          
+          {/* --- Common Components --- */}
+          {/* Reduce margin-bottom */}
+          <div className="mb-4">
+            <ActionButtons
+              onUpdate={handleUpdateClick}
+              onSave={handleSaveClick}
+              isDisabled={!isAnalyzed || isLoading || isUpdating || activeTab !== 'content'}
+            />
           </div>
-        </footer>
+
+        </motion.div>
       </div>
+
+      {/* Loading Overlay */} 
+      <AnimatePresence>
+        {isUpdating && (
+          <motion.div
+            
+            className="absolute inset-0 bg-[hsl(var(--background)/0.7)] backdrop-blur-sm flex items-center justify-center z-50"
+            variants={overlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            <UpdateLoadingAnimation />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };

@@ -1,28 +1,42 @@
-
 import { toast } from "sonner";
 
-interface ShapeInfo {
-  slideIdx: number;
-  shapeIdx: number;
-  currentText: string;
+
+
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+
+
+
+export interface BackendAnalysisResult {
+  fileName: string;
+  analysisDetails: {
+    text_content_found?: any; 
+    image_placeholders_found?: { [key: string]: { slide_idx: number; shape_id: number } | null };
+    text_placeholders_found?: { [key: string]: { slide_idx: number; shape_id: number; current_text: string } | null };
+    initial_values: {
+        theme: string;
+        tmod: string;
+        ge: string;
+        speaker1: string;
+        speaker2: string;
+        meeting_mode: string;
+        meeting_time: string;
+        venue: string;
+        day: string;
+        date: string;
+        month: string;
+        year: string;
+    };
+    
+  };
+  status: string;
+  warnings?: string[];
+  fileId: string; 
 }
 
-interface ShapeObjects {
-  [key: string]: ShapeInfo[];
-}
 
-interface ImagePlaceholder {
-  slideIdx: number;
-  shapeIdx: number;
-}
-
-interface TextPlaceholder {
-  slideIdx: number;
-  shapeIdx: number;
-  currentText: string;
-}
-
-interface Replacements {
+export interface UpdateRequestData {
+  fileId: string;
   theme: string;
   day: string;
   date: string;
@@ -32,244 +46,322 @@ interface Replacements {
   ge: string;
   speaker1: string;
   speaker2: string;
-  meeting_mode: string;
-  meeting_time: string;
+  meetingMode: string; 
+  meetingTime: string; 
   venue: string;
+  
+  tmodImage?: string;    
+  geImage?: string;      
+  speaker1Image?: string; 
+  speaker2Image?: string; 
+  
+  ge_title: string; 
+}
+
+
+export interface ImageListResponse {
+  images: string[];
+}
+
+
+export interface PresentationBlob extends Blob {
+    filename?: string;
+}
+
+
+async function fetchApi(endpoint: string, options: RequestInit = {}): Promise<Response> {
+    const url = `${API_BASE_URL}${endpoint}`;
+    try {
+        console.log(`Calling API: ${options.method || 'GET'} ${url}`);
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                ...(options.headers || {}),
+            },
+        });
+
+        if (!response.ok) {
+            let errorDetail = `HTTP error! status: ${response.status}`;
+            let errorBody = '';
+            try {
+                
+                errorBody = await response.text(); 
+                const errorJson = JSON.parse(errorBody); 
+                errorDetail = errorJson.detail || errorDetail;
+            } catch (e) {
+                 errorDetail = `${errorDetail} - ${errorBody || 'No response body'}`;
+                
+            }
+            console.error(`API Error (${options.method || 'GET'} ${endpoint}): ${errorDetail}`, response);
+            toast.error(`API Error: ${errorDetail}`);
+            throw new Error(errorDetail);
+        }
+        return response;
+    } catch (error: any) {
+        
+        if (error.message.startsWith('HTTP error!')) {
+             throw error; 
+        } else {
+            
+            console.error(`Network or other error calling ${endpoint}:`, error);
+            toast.error(`Network Error: Could not connect to API at ${url}. Is the backend running?`);
+            throw new Error(`Network Error: Could not connect to API.`); 
+        }
+    }
+}
+
+
+interface ShapeInfo {
+  slideIdx: number;
+  shapeIdx: number;
+  currentText: string;
+}
+
+
+export interface Profile {
+    name: string;
+    image_filename: string;
+}
+
+export interface ProfileListResponse {
+    profiles: Profile[];
+}
+
+export interface ProfileUpdateResponse {
+    message: string;
+    profile: Profile;
+}
+
+export interface ProfileDeleteResponse {
+    message: string;
+    name: string;
 }
 
 class PresentationService {
-  // Simulating the shape objects and search texts that would be found in a PPT
-  private shapeObjects: ShapeObjects = {};
-  private searchTexts: { [key: string]: string } = {
-    'theme': 'Speak friend and enter',
-    'day': 'WED',
-    'date': '30th',
-    'month': 'APRIL',
-    'year': '2025',
-    'tmod': 'TM TMOD NAME',
-    'ge': 'GE Name',
-    'speaker1': 'TM Person1',
-    'speaker2': 'TM Person2'
-  };
+  
 
-  private presentationBlob: Blob | null = null;
-  private tempPresentationBlob: Blob | null = null;
-  
-  // Image and text placeholder info
-  private imageShapeNames: { [key: string]: string } = {
-    'tmod_image': 'TMOD_Image_Shape',
-    'speaker1_image': 'Speaker1_Image_Shape',
-    'speaker2_image': 'Speaker2_Image_Shape',
-    'ge_image': 'GE_Image_Shape'
-  };
+  async analyzePPT(file: File): Promise<BackendAnalysisResult> {
+    console.log(`Analyzing PPT: ${file.name}`);
+    const formData = new FormData();
+    formData.append("file", file);
 
-  private textShapeNames: { [key: string]: string } = {
-    'meeting_mode': 'Meeting Mode',
-    'meeting_time': 'Meeting Time',
-    'venue': 'Venue'
-  };
-  
-  private imagePlaceholders: { [key: string]: ImagePlaceholder | null } = {};
-  private textPlaceholders: { [key: string]: TextPlaceholder | null } = {};
-  
-  async analyzePPT(file: File): Promise<{ 
-    logs: string[], 
-    searchTexts: { [key: string]: string },
-    textDetails: { 
-      meeting_mode?: string,
-      meeting_time?: string,
-      venue?: string
-    }
-  }> {
-    return new Promise((resolve) => {
-      // In a real implementation, we would analyze the PPT file here
-      // For demo purposes, we're simulating the analysis
-      
-      this.presentationBlob = file;
-      
-      // Reset shape objects
-      this.shapeObjects = {
-        'theme': [],
-        'day': [],
-        'date': [],
-        'month': [],
-        'year': [],
-        'tmod': [],
-        'ge': [],
-        'speaker1': [],
-        'speaker2': []
-      };
-      
-      // Reset placeholder objects
-      this.imagePlaceholders = {
-        'tmod_image': null,
-        'speaker1_image': null,
-        'speaker2_image': null,
-        'ge_image': null
-      };
-      
-      this.textPlaceholders = {
-        'meeting_mode': null,
-        'meeting_time': null,
-        'venue': null
-      };
-      
-      const logs: string[] = [];
-      const textDetails: { meeting_mode?: string, meeting_time?: string, venue?: string } = {
-        meeting_mode: 'Online Meeting',
-        meeting_time: '7:00 PM - 9:00 PM',
-        venue: 'Zoom Video Conference'
-      };
-      
-      // Simulate finding text in slides
-      Object.keys(this.searchTexts).forEach(key => {
-        const slideIdx = Math.floor(Math.random() * 5); // Random slide index
-        const shapeIdx = Math.floor(Math.random() * 10); // Random shape index
-        
-        this.shapeObjects[key].push({
-          slideIdx,
-          shapeIdx,
-          currentText: this.searchTexts[key]
-        });
-        
-        logs.push(`Found potential match for '${key}': '${this.searchTexts[key]}' on slide ${slideIdx+1}`);
-      });
-      
-      // Simulate finding image placeholders
-      Object.keys(this.imageShapeNames).forEach(key => {
-        const slideIdx = Math.floor(Math.random() * 5); // Random slide index
-        const shapeIdx = Math.floor(Math.random() * 10); // Random shape index
-        
-        this.imagePlaceholders[key] = {
-          slideIdx,
-          shapeIdx
-        };
-        
-        logs.push(`Found image placeholder for '${key}': Shape named '${this.imageShapeNames[key]}' on slide ${slideIdx+1}`);
-      });
-      
-      // Simulate finding text placeholders
-      Object.keys(this.textShapeNames).forEach(key => {
-        const slideIdx = Math.floor(Math.random() * 5); // Random slide index
-        const shapeIdx = Math.floor(Math.random() * 10); // Random shape index
-        const currentText = textDetails[key as keyof typeof textDetails] || '';
-        
-        this.textPlaceholders[key] = {
-          slideIdx,
-          shapeIdx,
-          currentText
-        };
-        
-        logs.push(`Found text placeholder for '${key}': Shape named '${this.textShapeNames[key]}' with text '${currentText}' on slide ${slideIdx+1}`);
-      });
-      
-      // Simulate a delay for analysis
-      setTimeout(() => {
-        resolve({
-          logs,
-          searchTexts: this.searchTexts,
-          textDetails
-        });
-      }, 1000);
-    });
-  }
-  
-  async updatePresentation(replacements: Replacements, imageFiles: { [key: string]: File | null }): Promise<string[]> {
-    return new Promise((resolve) => {
-      // In a real implementation, we would update the PPT file here
-      // For demo purposes, we're simulating the update
-      
-      if (!this.presentationBlob) {
-        toast.error("No presentation file available. Please upload and analyze a presentation first.");
-        return resolve([]);
-      }
-      
-      // Format replacements with TM prefix for speakers
-      const formattedReplacements = {
-        ...replacements,
-        tmod: `TM ${replacements.tmod}`,
-        speaker1: `TM ${replacements.speaker1}`,
-        speaker2: `TM ${replacements.speaker2}`
-      };
-      
-      const logs: string[] = [];
-      
-      // Simulate updating each shape text
-      Object.keys(this.shapeObjects).forEach(key => {
-        if (key in formattedReplacements) {
-          this.shapeObjects[key].forEach(shapeInfo => {
-            const newText = formattedReplacements[key as keyof typeof formattedReplacements];
-            logs.push(`Updated '${key}' text on slide ${shapeInfo.slideIdx+1} from '${shapeInfo.currentText}' to '${newText}'`);
+    try {
+        const response = await fetchApi("/upload_analyze/", {
+            method: "POST",
+            body: formData,
             
-            // Update the current text in our data structure
-            shapeInfo.currentText = newText;
-          });
+        });
+        const data: BackendAnalysisResult = await response.json();
+        console.log("Analysis successful:", data);
+        if (!data.fileId) {
+            throw new Error("Analysis response missing fileId");
         }
-      });
-      
-      // Simulate updating text placeholders
-      Object.keys(this.textPlaceholders).forEach(key => {
-        if (this.textPlaceholders[key] && key in formattedReplacements) {
-          const placeholder = this.textPlaceholders[key];
-          const newText = formattedReplacements[key as keyof typeof formattedReplacements];
-          
-          if (placeholder) {
-            logs.push(`Updated text placeholder '${key}' on slide ${placeholder.slideIdx+1} from '${placeholder.currentText}' to '${newText}'`);
-            placeholder.currentText = newText;
-          }
-        }
-      });
-      
-      // Simulate updating images
-      Object.keys(imageFiles).forEach(key => {
-        const imageFile = imageFiles[key];
-        if (imageFile) {
-          const roleName = key.replace('_image', '');
-          const personName = replacements[roleName as keyof typeof replacements];
-          
-          const placeholder = this.imagePlaceholders[key];
-          if (placeholder) {
-            logs.push(`Updated image for '${roleName}' (${personName}) on slide ${placeholder.slideIdx+1} with file: ${imageFile.name}`);
-          }
-        }
-      });
-      
-      // Update the searchTexts with the new values
-      Object.keys(formattedReplacements).forEach(key => {
-        if (key in this.searchTexts) {
-          this.searchTexts[key] = formattedReplacements[key as keyof typeof formattedReplacements];
-        }
-      });
-      
-      // Create a copy of the original blob to simulate an update
-      this.tempPresentationBlob = new Blob([this.presentationBlob], { type: this.presentationBlob.type });
-      
-      // Simulate a delay for processing
-      setTimeout(() => {
-        toast.success("Presentation updated successfully!");
-        resolve(logs);
-      }, 1500);
-    });
+        return data;
+    } catch (error) {
+        console.error(`Failed to analyze presentation '${file.name}'.`, error);
+        throw error;
+    }
   }
+
+  async updatePresentation(updateData: UpdateRequestData): Promise<PresentationBlob> {
+     console.log("Updating presentation for fileId:", updateData.fileId);
+     if (!updateData.fileId) {
+        const errorMsg = "Update failed: Missing fileId.";
+        console.error(errorMsg);
+        throw new Error(errorMsg);
+     }
+     try {
+        const response = await fetchApi("/update_presentation/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                
+                
+                "Accept": "application/vnd.openxmlformats-officedocument.presentationml.presentation, application/json",
+            },
+            body: JSON.stringify(updateData),
+        });
+
+        
+        const contentType = response.headers.get("content-type");
+        if (contentType?.includes("application/json")) {
+            const errorJson = await response.json();
+            const errorMsg = `Update failed: ${errorJson.detail || 'Unknown server error'}`;
+            console.error(errorMsg, errorJson);
+            throw new Error(errorMsg);
+        }
+
+        
+        const blob: PresentationBlob = await response.blob();
+
+        
+        const disposition = response.headers.get('Content-Disposition');
+        let filename = "updated_presentation.pptx"; 
+        if (disposition && disposition.includes('attachment')) {
+            const filenameRegex = /filename[^;=]*=(?:"(.*?)"|([^;]*))/;
+            const matches = filenameRegex.exec(disposition);
+            if (matches != null && (matches[1] || matches[2])) {
+              filename = matches[1] || matches[2]; 
+              
+              filename = filename.split(/[/\\]/).pop() || "download.pptx";
+            }
+        }
+
+        console.log(`Update successful. Received blob: ${blob.size} bytes, type: ${blob.type}. Filename: ${filename}`);
+        blob.filename = filename;
+
+        return blob;
+     } catch (error) {
+         console.error("Error during presentation update:", error);
+         throw error;
+     }
+  }
+
+  async uploadImage(file: File): Promise<{ message: string }> {
+    console.log(`Uploading image: ${file.name}`);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+        const response = await fetchApi("/upload_image/", {
+            method: "POST",
+            body: formData,
+            headers: {
+                 "Accept": "application/json", 
+            }
+        });
+        const data = await response.json();
+        console.log("Image upload successful:", data);
+        return data;
+    } catch (error) {
+        console.error(`Failed to upload image '${file.name}'.`, error);
+        throw error;
+    }
+  }
+
+  async listImages(): Promise<ImageListResponse> {
+    console.log("Listing server images");
+    try {
+        const response = await fetchApi("/list_images/", {
+             method: "GET",
+             headers: {
+                 "Accept": "application/json", 
+             }
+        });
+        const data: ImageListResponse = await response.json();
+        console.log("Found images:", data.images);
+        return data;
+    } catch (error) {
+        toast.error("Failed to list server images.");
+        throw error; 
+    }
+  }
+
   
-  savePresentation(fileName: string): void {
-    if (!this.tempPresentationBlob) {
-      toast.error("No updated presentation available. Please update the presentation first.");
+  
+  saveBlob(blob: PresentationBlob | Blob | null, defaultFileName: string = "presentation.pptx"): void {
+    if (!(blob instanceof Blob)) {
+        console.error("Invalid blob provided to saveBlob", blob);
+        toast.error("Download failed: Invalid file data.");
       return;
     }
     
-    // Create a download link for the presentation
-    const url = URL.createObjectURL(this.tempPresentationBlob);
+    const filename = (blob as PresentationBlob).filename || defaultFileName;
+    
+    const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
+    a.style.display = "none";
     a.href = url;
-    a.download = fileName.replace('.pptx', '') + "_edited.pptx";
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast.success("Presentation saved successfully!");
+    window.URL.revokeObjectURL(url);
+    a.remove();
+    console.log(`Triggered download for ${filename}`);
+  }
+
+  async getProfiles(): Promise<ProfileListResponse> {
+    console.log("Fetching profiles");
+    try {
+        const response = await fetchApi("/profiles/", {
+             method: "GET",
+             headers: { "Accept": "application/json" }
+        });
+        const data: ProfileListResponse = await response.json();
+        console.log("Profiles fetched:", data.profiles);
+        return data;
+    } catch (error) {
+        toast.error("Failed to fetch profiles.");
+        throw error;
+    }
+  }
+
+  async addOrUpdateProfile(name: string, file: File): Promise<ProfileUpdateResponse> {
+    console.log(`Adding/updating profile for: ${name}`);
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("file", file);
+
+    try {
+        const response = await fetchApi("/profiles/", {
+            method: "POST",
+            body: formData, 
+            headers: { "Accept": "application/json" } 
+        });
+        const data: ProfileUpdateResponse = await response.json();
+        console.log("Profile update successful:", data);
+        toast.success(data.message || `Profile for '${name}' saved.`);
+        return data;
+    } catch (error) {
+        toast.error(`Failed to save profile for '${name}'.`);
+        throw error;
+    }
+  }
+
+  async deleteProfile(name: string): Promise<ProfileDeleteResponse> {
+    console.log(`Deleting profile: ${name}`);
+    try {
+        
+        const encodedName = encodeURIComponent(name);
+        const response = await fetchApi(`/profiles/${encodedName}`, {
+            method: "DELETE",
+            headers: { "Accept": "application/json" } 
+        });
+        const data: ProfileDeleteResponse = await response.json();
+        console.log("Profile deletion successful:", data);
+        toast.success(data.message || `Profile for '${name}' deleted.`);
+        return data;
+    } catch (error) {
+        toast.error(`Failed to delete profile for '${name}'.`);
+        throw error;
+    }
   }
 }
 
-export default new PresentationService();
+
+const presentationService = new PresentationService();
+export default presentationService;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export interface ImagePlaceholderInfo {
+  slideIdx: number;
+  shapeId: number; 
+}
+
+export interface TextPlaceholderInfo {
+  slideIdx: number;
+  shapeId: number; 
+  currentText: string;
+}

@@ -68,14 +68,11 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				// New color system based on the proposal
-				deep: {
-					purple: '#5D4A8C',
-					teal: '#21B6A8'
-				},
-				accent: {
-					gold: '#E6B54A',
-					coral: '#FF7F6B'
-				},
+				// Removing deep purple definition
+				// deep: {
+				// 	purple: '#5D4A8C',
+				// 	teal: '#21B6A8'
+				// },
 				neutral: {
 					50: '#F8F8F8',
 					100: '#F0F0F0',
@@ -148,7 +145,58 @@ export default {
 					700: '#466dc6',
 					800: '#849dd9',
 					900: '#c1ceec'
+				},
+				// --- Replace with New Color Palette --- 
+				raisin_black: {
+					DEFAULT: '#1a1423',
+					100: '#050407',
+					200: '#0b080e',
+					300: '#100c15',
+					400: '#15101c',
+					500: '#1a1423',
+					600: '#45365d',
+					700: '#705797',
+					800: '#9f8cbd',
+					900: '#cfc5de'
+				},
+				mountbattenpink: {
+					DEFAULT: '#a07178',
+					100: '#f1e8ea',
+					200: '#e4d2d5',
+					300: '#d6bbc0',
+					400: '#c9a5ab',
+					500: '#bb8f97',
+					600: '#a07178',
+					700: '#7e595f',
+					800: '#5e4247',
+					900: '#402c30'
+				},
+				mint_green: {
+					DEFAULT: '#e9fff9',
+					100: '#006248',
+					200: '#00c490',
+					300: '#27ffc5',
+					400: '#89ffdf',
+					500: '#e9fff9',
+					600: '#effffb',
+					700: '#f3fffc',
+					800: '#f7fffd',
+					900: '#fbfffe'
+				},
+				// Add midnight_green back
+				midnight_green: {
+					DEFAULT: '#1e555c',
+					100: '#061112',
+					200: '#0c2225',
+					300: '#123337',
+					400: '#18444a',
+					500: '#1e555c',
+					600: '#318b97',
+					700: '#4fb8c6',
+					800: '#8ad0d9',
+					900: '#c4e7ec'
 				}
+				// --- End New Color Palette ---
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -208,14 +256,11 @@ export default {
 			},
 			backgroundImage: {
 				// Updated gradients based on the new color system
-				'gradient-primary': 'linear-gradient(135deg, #5D4A8C 0%, #7A5EB2 100%)',
+				'gradient-primary': 'linear-gradient(135deg, #1e555c 0%, #318b97 100%)',
 				'gradient-secondary': 'linear-gradient(135deg, #21B6A8 0%, #4FD1C5 100%)',
 				'gradient-accent': 'linear-gradient(135deg, #E6B54A 0%, #F6D06C 100%)',
 				'gradient-coral': 'linear-gradient(135deg, #FF7F6B 0%, #FFA28F 100%)',
-				// Keep existing gradients
-				'gradient-purple': 'linear-gradient(102.3deg, rgba(150,122,161,0.9) 5.9%, rgba(170,161,200,0.9) 64%, rgba(213,198,224,0.9) 89%)',
 				'gradient-soft': 'linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%)',
-				'gradient-lavender': 'linear-gradient(to right, #f5e6e8, #d5c6e0)'
 			},
 			boxShadow: {
 				'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',

@@ -1,0 +1,170 @@
+/* Tailwind directives - KEEP THESE */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Restore theme variables and other base styles */
+@layer base {
+  :root {
+    /* NEW THEME - Dark Base */
+    --background: 264 27% 11%; /* Raisin Black HSL approx */
+    --foreground: 164 100% 96%; /* Mint Green HSL approx */
+    --card: 264 27% 15%; /* Darker Raisin Black */
+    --card-foreground: 164 100% 96%; /* Mint Green */
+    --popover: 264 27% 11%; /* Raisin Black */
+    --popover-foreground: 164 100% 96%; /* Mint Green */
+    --primary: 187 46% 24%; /* Midnight Green HSL - MATCHING TAILWIND HEX */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 290 17% 20%; /* Darker Mountbatten Pink */
+    --secondary-foreground: 164 100% 96%; /* Mint Green */
+    --muted: 290 17% 25%; /* Darker Mountbatten Pink */
+    --muted-foreground: 290 17% 72%; /* Medium Mountbatten Pink */
+    --accent: 187 51% 24%; /* Midnight Green HSL approx */
+    --accent-foreground: 164 100% 96%; /* Mint Green */
+    --destructive: 0 62.8% 30.6%; /* Adjusted for dark */
+    --destructive-foreground: 0 0% 98%;
+    --border: 290 17% 30%; /* Dark Mountbatten Pink */
+    --input: 290 17% 30%; /* Dark Mountbatten Pink */
+    --ring: 290 17% 72%; /* Medium Mountbatten Pink */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Same as :root for now, update primary here too */
+    --background: 264 27% 11%; 
+    --foreground: 164 100% 96%;
+    --card: 264 27% 15%;
+    --card-foreground: 164 100% 96%;
+    --popover: 264 27% 11%;
+    --popover-foreground: 164 100% 96%;
+    --primary: 187 46% 24%; /* Midnight Green HSL - MATCHING TAILWIND HEX */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 290 17% 20%;
+    --secondary-foreground: 164 100% 96%;
+    --muted: 290 17% 25%;
+    --muted-foreground: 290 17% 72%;
+    --accent: 187 51% 24%;
+    --accent-foreground: 164 100% 96%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 290 17% 30%;
+    --input: 290 17% 30%;
+    --ring: 290 17% 72%;
+  }
+}
+
+@layer base {
+  /* Restore base styles */
+  * {
+    @apply border-border;
+  }
+  html { 
+    @apply bg-background;
+    /* Custom raisin_black dot cursor - Using HEX */
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"><circle cx="8" cy="8" r="6" fill="%231a1423"/></svg>') 8 8, auto;
+  }
+  body {
+    @apply text-foreground;
+  }
+}
+
+/* --- Custom Cursor Interaction --- */
+
+/* Apply larger cursor on hover over interactive elements */
+a:hover,
+button:hover,
+label[htmlFor]:hover,
+input[type='submit']:hover, 
+input[type='button']:hover,
+input[type='checkbox']:hover,
+input[type='radio']:hover,
+input[type='text']:hover,
+textarea:hover,
+.file-upload-zone:hover,
+.cmdk-item:hover,
+[role='button']:hover {
+  /* Bigger (r="10"), Lighter (hsl 30%) dot cursor SVG */
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"><circle cx="10" cy="10" r="10" fill="hsl(264 30% 30%)"/></svg>') 10 10, auto !important;
+}
+
+/* --- Dropdown Highlight Styling (Revised) --- */
+
+/* Style highlighted (hover/keyboard nav) item */
+[data-radix-select-content] [data-highlighted],
+[data-radix-combobox-content] [data-highlighted],
+/* Explicit target for cmdk items being highlighted */
+.cmdk-item[data-highlighted],
+.cmdk-item:not([aria-disabled="true"]):hover {
+  background-color: hsl(var(--background)) !important; /* Raisin Black BG */
+  color: hsl(var(--foreground)) !important; /* Mint Green Text */
+  outline: none; /* Remove potential default outline */
+}
+
+/* Style SELECTED item */
+[data-radix-select-content] [role='option'][aria-selected='true'],
+[data-radix-combobox-content] [role='option'][aria-selected='true'],
+/* Explicit target for cmdk selected states */
+.cmdk-item[aria-selected='true'], 
+.cmdk-item[data-selected='true'] {
+  background-color: hsl(var(--background)) !important; /* Raisin Black BG */
+  color: hsl(var(--foreground)) !important; /* Mint Green Text */
+  outline: none; /* Remove potential default outline */
+}
+
+/* --- Custom Scrollbar Styling for Dark Dropdown --- */
+
+/* WebKit Scrollbar Styles (Dropdown) */
+.dark ::-webkit-scrollbar {
+  width: 8px; /* Keep dropdown scrollbar thin */
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: hsl(var(--background) / 0.2);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary));
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--accent));
+}
+
+/* Firefox Scrollbar Styles (Dropdown) */
+.dark {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary)) hsl(var(--background) / 0.2);
+}
+
+/* --- Custom Global Scrollbar Styling (Thicker) --- */
+
+/* WebKit Scrollbar Styles (Global) */
+::-webkit-scrollbar {
+  width: 20px; /* Make global scrollbar REALLY thick */
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background) / 0.2);
+  border-radius: 10px; /* Adjust radius for thicker bar */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary));
+  border-radius: 10px; /* Adjust radius for thicker bar */
+  border: 6px solid transparent; /* Adjust border for thicker bar */
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--accent));
+}
+
+/* Firefox Scrollbar Styles (Global) */
+html {
+  scrollbar-width: auto; /* Keep as auto for Firefox */
+  scrollbar-color: hsl(var(--primary)) hsl(var(--background) / 0.2);
+} 

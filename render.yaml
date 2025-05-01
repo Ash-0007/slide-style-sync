@@ -4,11 +4,11 @@ services:
     name: slide-style-sync
     runtime: python
     python:
-      version: "3.9.16"  # Python version - adjust as needed
+      version: "3.12"  # Python version - adjust as needed
     buildCommand: |
       pip install -r requirements.txt
     startCommand: |
-      gunicorn --worker-class uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:10000 backend:app
+      gunicorn --worker-class uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:10000 backend_main:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.12
